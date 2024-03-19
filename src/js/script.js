@@ -2,6 +2,7 @@ const GAME_TIME = 30;
 const GAME_MESSAGE_WIN = 'You Win';
 const GAME_MESSAGE_LOST = 'YOU LOST';
 const GAME_TIME_SHOW_MESSAGE = 5;
+const GAME_STATUS_DEFAULT = 0;
 
 
 let canvas = document.createElement('canvas');
@@ -61,7 +62,7 @@ class Matter { // Vật phẩm: vàng đá, tiền, túi vàng
 class Gold extends Matter {
     constructor(game, x, y, width, height) {
         super(game, x, y, width, height);
-        this.price = 300;
+        this.price = 100;
         this.weighty = 3;
         this.image = imageGold;
     }
@@ -79,7 +80,7 @@ class Rock extends Matter {
 class BigRock extends Matter {
     constructor(game, x, y, width, height) {
         super(game, x, y, width, height);
-        this.price = 100;
+        this.price = 50;
         this.weighty = 10;
         this.image = imageBigRock;
     }
@@ -97,8 +98,8 @@ class BagGold extends Matter {
 class PotGold extends Matter {
     constructor(game, x, y, width, height) {
         super(game, x, y, width, height);
-        this.price = 100;
-        this.weighty = 3;
+        this.price = 300;
+        this.weighty = 4;
         this.image = imagePotGold;
     }
 }
@@ -110,6 +111,14 @@ class Input {
             if (this.game.player.pulling === 0 && this.game.status === 0) {
                 this.game.player.updatePulling(1);
             }
+
+            let x = event.pageX - canvas.offsetLeft;
+            let y = event.pageY - canvas.offsetTop;
+
+            if (this.game.buttonPlayAgain.isShow && this.game.buttonPlayAgain.isClick(x, y)) {
+                this.game.refresh();
+            }
+
         });
 
         window.addEventListener('keydown', (e) => {
@@ -171,6 +180,7 @@ class Rope {
         // chiều dài đoạn dây
         this.lengthDefault = this.game.player.width * 2 / 3;
         this.length = this.lengthDefault;
+        this.isShow = true;
     }
 
     update(time = 0) {
@@ -187,14 +197,16 @@ class Rope {
             context.strokeRect(this.x, this.y, 10, 10);
         }
 
-        context.save();
-        context.beginPath();
-        context.strokeStyle = "#3E3E3E";
-        context.lineWidth = Math.floor(this.game.player.width / 50);
-        context.moveTo(this.x, this.y);
-        context.lineTo(this.game.hook.x + this.game.hook.width / 2, this.game.hook.y + this.game.hook.height / 4);
-        context.stroke();
-        context.restore();
+        if (this.isShow) {
+            context.save();
+            context.beginPath();
+            context.strokeStyle = "#3E3E3E";
+            context.lineWidth = Math.floor(this.game.player.width / 50);
+            context.moveTo(this.x, this.y);
+            context.lineTo(this.game.hook.x + this.game.hook.width / 2, this.game.hook.y + this.game.hook.height / 4);
+            context.stroke();
+            context.restore();
+        }
     }
 }
 
@@ -215,19 +227,21 @@ class Game {
         this.numRock = 3;
         this.numBigRock = 3;
         this.numBagGold = 1;
-        this.ui = new UI(this);
-        this.player = new Player(this);
-        this.matters = this.addMatters();
-        this.rope = new Rope(this);
-        this.hook = new Hook(this);
-        new Input(this);
 
-        this.status = 0; //0: đang chơi 1:chiến thắng -1:thua
+        this.status = GAME_STATUS_DEFAULT; //0: đang chơi 1:chiến thắng -1:thua
         this.messageWin = GAME_MESSAGE_WIN;
         this.messageLost = GAME_MESSAGE_LOST;
         this.timeShowMessage = GAME_TIME_SHOW_MESSAGE;
         this.messageTime = 0;
         this.level = 0;
+
+        this.ui = new UI(this);
+        this.player = new Player(this);
+        this.matters = this.addMatters();
+        this.rope = new Rope(this);
+        this.hook = new Hook(this);
+        this.input = new Input(this);
+        this.buttonPlayAgain = new Button(this, this.width / 2, this.height / 2, 'Play Again', '#000', '#fff', 10, 10, 20, false);
 
     }
 
@@ -235,6 +249,7 @@ class Game {
         this.checkStatus(time);
         this.updateTime(time);
         this.updateTimeIncreaseScore(time);
+        this.ui.update(time);
         this.matters.forEach(matter => matter.update());
         this.player.update(time);
         this.rope.update();
@@ -250,6 +265,8 @@ class Game {
         this.hook.draw(context);
         this.matters.forEach(matter => matter.draw(context));
         this.ui.drawMessage(context);
+        // this.ui.drawPlayAgain(context);
+        this.buttonPlayAgain.draw(context);
     }
 
     updateTime(time) {
@@ -387,14 +404,16 @@ class Game {
     }
 
     checkStatus(time) {
-        if (Math.round(this.timeShowMessage - this.messageTime) <= 0) {
-            this.status === -1 ? this.refresh(time) : this.nextLevel(time);
+        if (Math.round(this.timeShowMessage - this.messageTime) <= 0 && this.status === 1) {
+            this.nextLevel(time);
             return;
         }
 
         if (!this.matters.length || this.time <= 0 || this.checkWin()) {
             this.status = this.time <= 0 ? -1 : 1;
-            this.messageTime += time / 1000;
+            if (this.messageTime < this.timeShowMessage) {
+                this.messageTime += time / 1000;
+            }
         }
 
     }
@@ -405,6 +424,7 @@ class Game {
         this.messageTime = 0;
         this.score = 0;
         this.matters = this.addMatters();
+        this.hook.show = true;
     }
 
     nextLevel(time) {
@@ -421,7 +441,6 @@ class Game {
         return !this.matters.filter(item => ['Gold', 'BagGold', 'PotGold'].includes(item.constructor.name)).length;
     }
 }
-
 
 class Player {
     constructor(game) {
@@ -472,19 +491,15 @@ class Player {
 
 }
 
-
 class UI {
     constructor(game) {
         this.game = game;
         this.background = background;
-
+        this.showButtonPlayAgain = false;
     }
 
     update(time) {
-        if (this.game.timeShowMessage - this.game.messageTime) {
-            this.game.status = 0;
-            this.game.messageTime = 0;
-        }
+        this.game.buttonPlayAgain.isShow = this.game.status === -1
     }
 
     draw(context) {
@@ -589,13 +604,81 @@ class UI {
         let textHeight = measureText.actualBoundingBoxAscent + measureText.actualBoundingBoxDescent;
         context.fillText(message, this.game.width / 2 - textWidth / 2, this.game.height / 2 - textHeight / 2)
 
-        measureText = context.measureText(this.game.timeShowMessage);
-        textWidth = measureText.width + 10;
-        textHeight += measureText.actualBoundingBoxAscent + measureText.actualBoundingBoxDescent;
-        message = '' + Math.round(this.game.timeShowMessage - this.game.messageTime);
-        context.fillText(message, this.game.width / 2 - textWidth / 2, this.game.height / 2 + textHeight);
-
+        if (this.game.status > 0) {
+            measureText = context.measureText(this.game.timeShowMessage);
+            textWidth = measureText.width + 10;
+            textHeight += measureText.actualBoundingBoxAscent + measureText.actualBoundingBoxDescent;
+            message = '' + Math.round(this.game.timeShowMessage - this.game.messageTime);
+            context.fillText(message, this.game.width / 2 - textWidth / 2, this.game.height / 2 + textHeight);
+        }
         context.restore();
+    }
+}
+
+class Button {
+    constructor(game, x, y, label, color, backgroundColor, paddingX = 5, paddingY = 5, borderRadius, isShow = false) {
+        this.game = game;
+        this.label = label;
+        this.color = color;
+        this.backgroundColor = backgroundColor;
+        this.borderRadius = borderRadius;
+        this.x = x;
+        this.y = y;
+        this.width = 0;
+        this.height = 0;
+        this.isShow = isShow;
+        this.paddingX = paddingX;
+        this.paddingY = paddingY;
+    }
+
+    update(time) {
+
+    }
+
+    draw(context) {
+        if (this.isShow) {
+            context.save();
+            context.font = '20px Montserrat';
+            context.fillStyle = this.color;
+
+            let measureText = context.measureText(this.label);
+            this.width = measureText.width;
+            this.height = measureText.actualBoundingBoxAscent + measureText.actualBoundingBoxDescent;
+
+            context.strokeStyle = this.backgroundColor;
+            context.fillStyle = this.backgroundColor;
+            context.beginPath();
+            context.roundRect(
+                this.x - this.width / 2 - this.paddingX * 2,
+                this.y,
+                this.width + this.paddingX * 2,
+                this.height + this.paddingY * 2,
+                this.borderRadius
+            );
+            context.stroke();
+            context.fill();
+            context.strokeStyle = '#000';
+            if (this.game.debug) {
+                context.strokeRect(this.x - this.width / 2 - this.paddingX * 2, this.y, this.width + this.paddingX * 2, this.height + this.paddingY * 2)
+            }
+
+
+            context.fillStyle = this.color;
+            context.fillText(this.label, this.x - this.width / 2 - this.paddingX, this.y + this.paddingY + this.height);
+
+            if (this.game.debug) {
+                context.strokeStyle = '#000';
+                context.strokeRect(this.x - this.width / 2 - this.paddingX,
+                    this.y + this.paddingY,
+                    this.width,
+                    this.height)
+            }
+            context.restore();
+        }
+    }
+
+    isClick(x, y) {
+        return x >= (this.x - this.width / 2 - this.paddingX * 2) && x <= this.x + this.width / 2 + this.paddingX && y >= this.y - this.paddingY && y <= this.y + this.height + this.paddingY * 2
     }
 }
 
