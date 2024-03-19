@@ -425,6 +425,11 @@ class Game {
         this.score = 0;
         this.matters = this.addMatters();
         this.hook.show = true;
+
+        this.player.speed = 5;
+        this.player.angle = 0;
+        this.player.coordinates = 0.7;
+        this.player.pulling = 0;
     }
 
     nextLevel(time) {
