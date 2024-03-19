@@ -111,6 +111,14 @@ class Input {
                 this.game.player.updatePulling(1);
             }
         });
+
+        window.addEventListener('keydown', (e) => {
+            let key = e.key;
+            if (key === 'd') {
+                this.game.debug = !this.game.debug;
+            }
+
+        });
     }
 }
 
@@ -192,7 +200,7 @@ class Rope {
 
 class Game {
     constructor(width, height) {
-        this.debug = true;
+        this.debug = false;
 
         this.width = width;
         this.height = height;
