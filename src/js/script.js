@@ -1,8 +1,9 @@
-const GAME_TIME = 30;
+const GAME_TIME = 50;
 const GAME_MESSAGE_WIN = 'You Win';
-const GAME_MESSAGE_LOST = 'YOU LOST';
+const GAME_MESSAGE_LOST = 'Timeout';
 const GAME_TIME_SHOW_MESSAGE = 5;
 const GAME_STATUS_DEFAULT = 0;
+const FONT = 'Madimi One'
 
 
 let canvas = document.createElement('canvas');
@@ -387,10 +388,12 @@ class Game {
                 matter.isPulling = true;
                 this.hook.show = false;
                 if (this.rope.length === this.rope.lengthDefault) {
-                    this.score += matter.price;
+                    if (this.status === 0) {
+                        this.score += matter.price;
+                        this.increaseScore = matter.price;
+                    }
                     this.hook.show = true;
                     this.matters.splice(index, 1);
-                    this.increaseScore = matter.price;
                 }
                 return false;
             }
@@ -525,7 +528,7 @@ class UI {
 
     drawScore(context) {
         context.save();
-        context.font = '30px Montserrat';
+        context.font = '30px ' + FONT;
 
         let measureText = context.measureText(this.game.score);
         let textWidth = measureText.width + 10;
@@ -554,7 +557,7 @@ class UI {
 
     drawTime(context) {
         context.save();
-        context.font = '30px Montserrat';
+        context.font = '30px ' + FONT;
 
         let time = Math.round(this.game.time) + 's';
         let measureText = context.measureText(time);
@@ -601,7 +604,7 @@ class UI {
         }
 
         context.save();
-        context.font = '50px Montserrat';
+        context.font = '50px ' + FONT;
         context.fillStyle = '#FFF';
         let message = this.game.status > 0 ? this.game.messageWin : this.game.messageLost;
         let measureText = context.measureText(message);
@@ -643,7 +646,7 @@ class Button {
     draw(context) {
         if (this.isShow) {
             context.save();
-            context.font = '20px Montserrat';
+            context.font = '20px ' + FONT;
             context.fillStyle = this.color;
 
             let measureText = context.measureText(this.label);
