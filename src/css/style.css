@@ -1,0 +1,25 @@
+body {
+    background-color: white;
+    margin: 0;
+    text-align: center;
+}
+
+html, body {
+    margin: 0;
+    height: 100%;
+    /*overflow: hidden*/
+}
+
+html {
+    /*scrollbar-width: none;*/
+    /*-ms-overflow-style: none;*/
+}
+
+
+.w-full {
+    width: 100vw;
+}
+
+.h-full {
+    height: 100vh;
+}

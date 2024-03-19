@@ -1,0 +1,11 @@
+{
+    "liveServer.settings.port": 5500,
+    "editor.tabSize": 4,
+    "files.autoSave": "onFocusChange",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "diffEditor.ignoreTrimWhitespace": true,
+    "diffEditor.maxComputationTime": 5000,
+    "workbench.statusBar.visible": true,
+    "workbench.settings.editor": "ui"
+}
