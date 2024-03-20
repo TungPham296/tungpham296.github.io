@@ -1,4 +1,4 @@
-const GAME_TIME = 5;
+const GAME_TIME = 50;
 const GAME_MESSAGE_WIN = 'You Win';
 const GAME_MESSAGE_LOST = 'Timeout';
 const GAME_TIME_SHOW_MESSAGE = 5;
