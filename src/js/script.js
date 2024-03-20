@@ -36,6 +36,7 @@ const pauseMusic = importImage('./src/images/pause.png', 2 * ratio, 2 * ratio);
 const InGame1Path = './src/musics/InGame1.mp3';
 const LevelCompletePath = './src/musics/LevelComplete.mp3';
 const GameOverPath = './src/musics/GameOver.mp3';
+const levelComplete1Path = './src/musics/LevelComplete1.mp3';
 
 
 const random = (min, max) => Math.random() * (max - min - 1) + min;
@@ -307,6 +308,7 @@ class Game {
         this.butonMusicGame = new MusicInGame(this);
         this.levelComplete = new Music(LevelCompletePath);
         this.gameOver = new Music(GameOverPath);
+        this.levelComplete1 = new Music(levelComplete1Path);
 
     }
 
@@ -323,10 +325,15 @@ class Game {
         this.hook.update();
         this.updatePulling();
         this.butonMusicGame.update();
+
         if (this.buttonPlayAgain.isShow && !this.gameOver.played) {
             this.gameOver.play();
             // this.butonMusicGame.play = false;
             this.butonMusicGame.audio.pause();
+        }
+
+        if (this.status === 1) {
+            this.levelComplete1.play();
         }
 
     }
