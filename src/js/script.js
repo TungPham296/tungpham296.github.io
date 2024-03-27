@@ -31,6 +31,7 @@ const imagePotGold = importImage('./src/images/hu_vang.svg', 2 * ratio, 2 * rati
 const imageClock = importImage('./src/images/clock.svg', 2 * ratio, 2 * ratio);
 const playMusic = importImage('./src/images/play.png', 2 * ratio, 2 * ratio);
 const pauseMusic = importImage('./src/images/pause.png', 2 * ratio, 2 * ratio);
+const bush = importImage('./src/images/bush.png', 2000, 54);
 
 //Import nhạc
 const InGame1Path = './src/musics/InGame1.mp3';
@@ -46,8 +47,8 @@ class MusicInGame {
         this.game = game;
         this.image = playMusic;
         this.play = false;
-        this.x = this.game.width - 100;
-        this.y = this.game.height - 100;
+        this.x = this.game.width * 0.95 - 50;
+        this.y = this.game.height * 0.95 - 50;
         this.width = 50;
         this.height = 50;
         this.audio = new Audio(InGame1Path);
@@ -178,7 +179,6 @@ class Input {
 
             if (this.game.player.pulling === 0 && this.game.status === 0) {
                 this.game.player.updatePulling(1);
-                return;
             }
 
         });
@@ -196,8 +196,8 @@ class Input {
 class Hook {
     constructor(game) {
         this.game = game;
-        this.width = this.game.getWidth() / 2;
-        this.height = this.game.getWidth() / 2;
+        this.width = ratio / 2;
+        this.height = ratio / 2;
         this.x = this.game.player.x + this.game.player.width / 2 - this.width / 2;
         this.y = this.game.player.y + this.game.player.height + this.game.rope.length;
         this.show = true;
@@ -214,7 +214,7 @@ class Hook {
         context.save();
         context.translate(this.x + this.width / 2, this.y + this.height / 2);
         if (this.game.debug) {
-            context.strokeRect(-this.game.getWidth() / 4, -this.game.getWidth() / 8, this.game.getWidth() / 2, this.game.getWidth() / 2);
+            context.strokeRect(-ratio / 4, -ratio / 8, ratio / 2, ratio / 2);
             context.strokeRect(0, 0, 10, 10);
             context.fillText(this.game.player.angle * Math.PI / 180 + '', 0, 0,)
         }
@@ -224,7 +224,7 @@ class Hook {
             // context.translate(this.x + this.width / 2, this.y + this.height / 2);
             context.rotate((this.game.player.angle - 90) * Math.PI / 180);
             context.translate(-this.width / 2, -this.height / 2);
-            context.drawImage(hook, -this.game.getWidth() / 4 + this.width / 2, -this.game.getWidth() / 8 + this.height / 2, this.game.getWidth() / 2, this.game.getWidth() / 2);
+            context.drawImage(hook, -ratio / 4 + this.width / 2, -ratio / 8 + this.height / 2, ratio / 2, ratio / 2);
             context.restore();
             context.translate(0, 0);
         }
@@ -314,7 +314,6 @@ class Game {
 
     update(time) {
 
-
         this.checkStatus(time);
         this.updateTime(time);
         this.updateTimeIncreaseScore(time);
@@ -348,6 +347,7 @@ class Game {
         // this.ui.drawPlayAgain(context);
         this.buttonPlayAgain.draw(context);
         this.butonMusicGame.draw(context);
+
     }
 
     updateTime(time) {
@@ -396,9 +396,11 @@ class Game {
             if (!!matterTemp && !matters.filter(matter => this.checkCollision(matter, matterTemp)).length) {
                 matters.push(matterTemp);
             }
+
             if (count > 1000) {
                 break;
             }
+
             count++;
         }
 
@@ -448,10 +450,6 @@ class Game {
 
     }
 
-    getWidth() {
-        return ratio;
-    }
-
     checkStatus(time) {
         if (Math.round(this.timeShowMessage - this.messageTime) <= 0 && this.status === 1) {
             this.nextLevel(time);
@@ -496,7 +494,7 @@ class Game {
         this.time = GAME_TIME - (this.level * 2);
         this.matters = this.addMatters();
         this.player.speed -= 0.5;
-        this.player.coordinates += 0.2
+        this.player.coordinates = Math.abs(this.player.coordinates) + 0.2;
     }
 
     checkWin() {
@@ -557,7 +555,6 @@ class UI {
     constructor(game) {
         this.game = game;
         this.background = background;
-        this.showButtonPlayAgain = false;
     }
 
     update(time) {
