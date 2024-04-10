@@ -5,7 +5,6 @@ const GAME_TIME_SHOW_MESSAGE = 5;
 const GAME_STATUS_DEFAULT = 0;
 const FONT = 'Madimi One'
 
-
 let canvas = document.createElement('canvas');
 canvas.id = 'elementID'
 let context = canvas.getContext('2d');
@@ -31,7 +30,7 @@ const imagePotGold = importImage('./src/images/hu_vang.svg', 2 * ratio, 2 * rati
 const imageClock = importImage('./src/images/clock.svg', 2 * ratio, 2 * ratio);
 const playMusic = importImage('./src/images/play.png', 2 * ratio, 2 * ratio);
 const pauseMusic = importImage('./src/images/pause.png', 2 * ratio, 2 * ratio);
-const bush = importImage('./src/images/bush.png', 2000, 54);
+const bush = importImage('./src/images/bush.png', 3698, 54);
 
 //Import nhạc
 const InGame1Path = './src/musics/InGame1.mp3';
@@ -555,16 +554,19 @@ class UI {
     constructor(game) {
         this.game = game;
         this.background = background;
+        this.bush = new Bush(game, 54, 54, 66);
     }
 
     update(time) {
         this.game.buttonPlayAgain.isShow = this.game.status === -1;
+        this.bush.update(time);
     }
 
     draw(context) {
         context.drawImage(this.background, (this.background.width - canvas.width * (this.background.height / canvas.height)) / 2, 0, canvas.width * (this.background.height / canvas.height), this.background.height, 0, 0, canvas.width, canvas.height);
         this.drawScore(context);
         this.drawTime(context);
+        this.bush.draw(context);
     }
 
     drawScore(context) {
@@ -664,6 +666,31 @@ class UI {
     }
 }
 
+class Bush {
+    constructor(game, width, height, maxLayer) {
+        this.game = game;
+        this.width = width;
+        this.height = height;
+        this.maxLayer = maxLayer;
+        this.image = bush;
+        this.framX = 0;
+        this.framXDirection = 1;
+    }
+
+    update(time) {
+        if (this.framX === this.maxLayer - 1 || this.framX === -1) {
+            this.framXDirection *= -1;
+        }
+        this.framX = this.framX + this.framXDirection;
+    }
+
+    draw(context) {
+        context.save();
+        context.drawImage(this.image, this.framX * 222, 0, 222, 241, 0, 180, 222, 241);
+        context.restore();
+    }
+}
+
 class Button {
     constructor(game, x, y, label, color, backgroundColor, paddingX = 5, paddingY = 5, borderRadius, isShow = false) {
         this.game = game;
@@ -721,7 +748,6 @@ class Button {
         return x >= (this.x - this.width / 2 - this.paddingX * 2) && x <= this.x + this.width / 2 + this.paddingX && y >= this.y - this.paddingY && y <= this.y + this.height + this.paddingY * 2
     }
 }
-
 
 // 744 x 1133
 function importImage(link, width = null, height = null) {
